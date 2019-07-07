@@ -1,6 +1,8 @@
 #runtime "hsp3cl"
+#packopt name "SeeLeeToeLee"
 #cmpopt varinit 1
-#include "hspinet.as"
+dim ml@mod_encode
+#include "encode.as"
 
 #module
 #defcfunc getBytes str _txt
@@ -81,7 +83,7 @@ foreach toPlainChar1: toPlainBytes.cnt=getBytes(toPlainChar1.cnt): loop
 		notesel data
 		sdim lf:poke lf,,10
 		noteload dataPath
-		nkfcnv@ data,data
+		data=utf8n2sjis@(data)
 		strrep data,"\n",lf
 		strrep data,"\r",lf
 		strrep data,lf,"\n"
