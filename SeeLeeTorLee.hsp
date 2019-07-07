@@ -1,0 +1,203 @@
+#runtime "hsp3cl"
+#cmpopt varinit 1
+#include "hspinet.as"
+
+#module
+#defcfunc getBytes str _txt
+	txt=_txt
+	byteMap=""
+	isSJIS=0
+	repeat strlen(txt)
+		if isSJIS: isSJIS=0: continue
+		byte=peek(txt,cnt)
+		if 129<=byte&byte<=159 | 224<=byte&byte<=252 {
+			isSJIS=1
+			byteMap+="2"
+		}
+		else {
+			byteMap+="1"
+		}
+	loop
+	return byteMap
+#global
+
+#module
+#defcfunc getChar str _txt,str _byteMap,int index
+	txt=_txt: byteMap=_byteMap
+	bIndex=-1
+	dim bSize
+	repeat index+1
+		bSize=int(strmid(byteMap,cnt,1))
+		bIndex+=bSize
+	loop
+	if bSize=2: bIndex-1
+	return strmid(txt,bIndex,bSize)
+#global
+
+smallChars="ァ","ィ","ゥ","ェ","ォ","ッ","ャ","ュ","ョ","ヮ"
+toPlainChar1( 0)="ァ"  ,"ィ",  "ゥヴ","ェ",  "ォ",  "ヵガ","ギ",  "グ",  "ヶゲ","ゴ"
+toPlainChar2( 0)="ア"  ,"イ",  "ウ"  ,"エ",  "オ",  "カ",  "キ",  "ク",  "ケ",  "コ"
+toPlainChar1(10)="ザ"  ,"ジ",  "ズ"  ,"ゼ",  "ゾ",  "ダ",  "ヂ",  "ッヅ","デ",  "ド"
+toPlainChar2(10)="サ"  ,"シ",  "ス"  ,"セ",  "ソ",  "タ",  "チ",  "ツ",  "テ",  "ト"
+toPlainChar1(20)="バパ","ビピ","ブプ","ベペ","ボポ","ャ",  "ュ",  "ョ",  "ヮ",  "2２"
+toPlainChar2(20)="ハ"  ,"ヒ"  ,"フ"  ,"ヘ"  ,"ホ"  ,"ヤ",  "ユ",  "ヨ",  "ワ",  "ツ"
+toPlainChar1(30)="ZＺ",   "♂",  "♀"
+toPlainChar2(30)="ゼット","オス","メス"
+sdim toPlainBytes,,length(toPlainChar1)
+foreach toPlainChar1: toPlainBytes.cnt=getBytes(toPlainChar1.cnt): loop
+
+#module
+#defcfunc check str _lastWord,str _nextWord
+	lastWord=_lastWord: nextWord=_nextWord
+	strrep lastWord,"ー",""
+	lastBytes=getBytes(lastWord)
+	nextBytes=getBytes(nextWord)
+	isLastSmall=0
+	foreach smallChars@
+		if -1!instr(lastWord,,smallChars@.cnt): isLastSmall=1: break
+	loop
+
+	foreach toPlainChar1@: i=cnt
+		repeat strlen(toPlainBytes@(i))
+			strrep lastWord,getChar(toPlainChar1@(i),toPlainBytes@(i),cnt),toPlainChar2@(i)
+			strrep nextWord,getChar(toPlainChar1@(i),toPlainBytes@(i),cnt),toPlainChar2@(i)
+		loop
+	loop
+
+	lastCharR=getChar(lastWord,lastBytes,strlen(lastBytes)-1)
+	lastCharL=getChar(lastWord,lastBytes,strlen(lastBytes)-2)
+	nextCharL=getChar(nextWord,nextBytes,0)
+	nextCharR=getChar(nextWord,nextBytes,1)
+	if lastCharR=nextCharL | (isLastsmall & lastCharL+lastCharR=nextCharL+nextCharR): return 1
+	return 0
+#global
+
+#module
+#deffunc main
+	sdim data
+	dataPath="./data.csv"
+	exist dataPath
+	if -1!strsize {
+		notesel data
+		sdim lf:poke lf,,10
+		noteload dataPath
+		nkfcnv@ data,data
+		strrep data,lf,"\n"
+	}
+	else{
+		mes "データが読み込めませんでした"
+		mes "ファイルパス:\""+dataPath+"\""
+		input data,,2
+	}
+	sdim dateTitle
+	noteget dateTitle,0
+	notedel 0
+	mes dateTitle
+
+	dim dataUsed,notemax
+	dim dataBytes,notemax
+	sdim s
+	foreach dataBytes
+		noteget s,cnt
+		dateBytes.cnt=getBytes(s)
+	loop
+
+	chars="アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲ"
+	charBytes=getBytes(chars)
+	sdim lastWord
+	randomize
+	repeat
+		lastWord=getChar(chars,charBytes,rnd(strlen(charBytes)))
+		for i,0,notemax
+			sdim v: noteget v,i
+			if lastWord=strmid(v,0,2): break
+		next
+	loop
+	lastBytes=getBytes(lastWord)
+
+	cpuMemory=data
+
+	isUser=1
+	users="あいて","あなた"
+	mes "はじめは"+users.isUser+"からです"
+	mes "最初の文字は「"+lastWord+"」です"
+	sdim ans
+	cpuRetry=3
+	repeat
+		gameBreak=1
+		repeat notemax
+			sdim v: noteget v,cnt
+			if "ン"=getChar(v,getBytes(v),strlen(v)-1): continue
+			if 0=dataUsed(cnt) & check(lastWord,v){
+				gameBreak=0
+				break
+			}
+		loop
+		if gameBreak {
+			mes users.isUser+"にもう勝ち目はありません"
+			result="勝ち","負け"
+			mes "あなたの"+result.isUser+"です"
+			break;
+		}
+		if isUser {
+			mes "あなた> ",1
+			input ans,,2
+		}
+		else{		
+			notesel cpuMemory
+			noteget ans,rnd(notemax)
+			noteunsel
+		}
+		ansBytes=getBytes(ans)
+
+		if ans="quit"{
+			mes "ギブアップしました"
+			mes "あなたの負けです"
+			break
+		}
+		dataIndex=notefind(ans)
+
+		if -1!dataIndex & check(lastWord,ans) {
+			if "ン"=getChar(ans,ansBytes,strlen(ansBytes)-1) {
+				if 0=isUser {
+					if 0<cpuRetry {
+						cpuRetry--
+						continue
+					}
+					else{
+						cpuRetry=0
+						mes "あいて> "+ans
+					}
+				}
+				result="勝ち","負け"
+				mes "あなたの"+result.isUser+"です"
+				break
+			}
+			if dataUsed(dataIndex) {
+				if isUser: mes "既に使われています"
+				continue
+			}
+			else {
+				if 0=isUser {
+					mes "あいて> "+ans
+					dim i
+					notesel cpuMemory
+					notedel notefind(ans)
+					noteunsel
+				}
+				mes "　　　↓"
+				dataUsed(dataIndex)=1
+				lastWord=ans
+				lastBytes=getBytes(ans)
+				isUser=1!isUser
+				cpuRetry=3
+			}
+		}
+		else {
+			if isUser: mes "間違っています"
+			continue
+		}
+	loop
+	return
+#global
+main
