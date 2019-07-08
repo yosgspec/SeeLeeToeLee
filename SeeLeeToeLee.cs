@@ -19,7 +19,7 @@ class Program{
 		("ダ",  "タ"),("ヂ",  "チ"),("ッヅ","ツ"),("デ",  "テ"),("ド",  "ト"),
 		("バパ","ハ"),("ビピ","ヒ"),("ブプ","フ"),("ベペ","ヘ"),("ボポ","ホ"),
 		("ャ",  "ヤ"),("ュ",  "ユ"),("ョ",  "ヨ"),("ヮ",  "ワ"),
-		("2２", "ツ"),("Zゼット", "ゼット"),("♂","オス"),("♀","メス")
+		("2", "ツ"),("Z", "ゼット"),("♂","オス"),("♀","メス")
 	},v=>(v.Item1.ToList().Select(s=>s.ToString()),v.Item2));
 	static Func<string,int,string> RightString=(s,len)=>s.Substring(s.Length-len,len);
 
@@ -38,17 +38,18 @@ class Program{
 		return false;
 	}
 
-	static void Main(){
+	static void Main(string[] args){
+		var dataPath=0<args.Length? args[0]: "./data.csv";
 		string[] dataArr;
 		try{
-			dataArr=File.ReadAllText("./data.csv")
+			dataArr=File.ReadAllText(dataPath)
 				.Trim()
 				.Replace("\r\n","\n")
 				.Split(new[]{'\n','\r'});
 		}
 		catch(Exception ex){
-			Console.WriteLine("データが読み込めませんでした");
-			Console.WriteLine(ex);
+			Console.Error.WriteLine("データが読み込めませんでした");
+			Console.Error.WriteLine(ex);
 			Console.ReadLine();
 			return;
 		}
@@ -70,7 +71,6 @@ class Program{
 			lastWord=chars[rand.Next(chars.Length)].ToString();
 			if(Array.Exists(dataArr,v=>v[0].ToString()==lastWord && 'ン'!=v[v.Length-1])) break;
 		}
-
 		var cpuMemory=new List<string>(dataArr);
 
 		var isUser=0!=rand.Next(2);

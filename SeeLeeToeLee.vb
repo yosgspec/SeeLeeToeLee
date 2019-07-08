@@ -22,7 +22,7 @@ Module Program
 		("ダ",  "タ"),("ヂ",  "チ"),("ッヅ","ツ"),("デ",  "テ"),("ド",  "ト"),
 		("バパ","ハ"),("ビピ","ヒ"),("ブプ","フ"),("ベペ","ヘ"),("ボポ","ホ"),
 		("ャ",  "ヤ"),("ュ",  "ユ"),("ョ",  "ヨ"),("ヮ",  "ワ"),
-		("2２", "ツ"),("Zゼット", "ゼット"),("♂","オス"),("♀","メス")
+		("2", "ツ"),("Z", "ゼット"),("♂","オス"),("♀","メス")
 	},Function(v) (v.Item1.ToList().Select(Function(s) s.ToString()),v.Item2))
 
 	Function check(lastWord As String,nextWord As String) As Boolean
@@ -40,16 +40,17 @@ Module Program
 		Return False
 	End Function
 
-	Sub Main()
+	Sub Main(args As String())
+		Dim dataPath=If(0<args.Length,args(0),"./data.csv")
 		Dim dataArr As String()
 		Try
-			dataArr=File.ReadAllText("./data.csv") _
+			dataArr=File.ReadAllText(dataPath) _
 				.Trim() _
 				.Replace(vbCrLf,vbLf) _
 				.Split({vbLf(0),vbCr(0)})
 		Catch ex As Exception
-			Console.WriteLine("データが読み込めませんでした")
-			Console.WriteLine(ex)
+			Console.Error.WriteLine("データが読み込めませんでした")
+			Console.Error.WriteLine(ex)
 			Console.ReadLine()
 			Return
 		End Try

@@ -10,7 +10,7 @@ const toPlainChar=[
 	[/ダ/g,    "タ"],[/ヂ/g,    "チ"],[/ッヅ/g,  "ツ"],[/デ/g,    "テ"],[/ド/g,    "ト"],
 	[/[バパ]/g,"ハ"],[/[ビピ]/g,"ヒ"],[/[ブプ]/g,"フ"],[/[ベペ]/g,"ヘ"],[/[ボポ]/g,"ホ"],
 	[/ャ/g,    "ヤ"],[/ュ/g,    "ユ"],[/ョ/g,    "ヨ"],[/ヮ/g,    "ワ"],
-	[/[2２]/g,"ツ"],[/[ZＺ]/g,"ゼット"],[/♂/g,  "オス"],[/♀/g,  "メス"]
+	[/2/g,     "ツ"],[/Z/g, "ゼット"],[/♂/g,  "オス"],[/♀/g,  "メス"]
 ];
 
 function check(lastWord,nextWord){
@@ -28,17 +28,18 @@ function check(lastWord,nextWord){
 	return false;
 }
 
-const g=function*(){
+const g=function*(args){
+	var dataPath=0<args.length? args[0]: "./data.csv";
 	var dataArr;
 	try{
-		dataArr=fs.readFileSync("./data.csv")
+		dataArr=fs.readFileSync(dataPath)
 			.toString()
 			.trim()
 			.split(/\r\n|\n|\r/);
 	}
 	catch(ex){
-		console.log("データが読み込めませんでした");
-		console.log(ex);
+		console.error("データが読み込めませんでした");
+		console.error(ex);
 		yield rl.once("line",()=>g.next());
 		process.exit();
 	}
@@ -117,5 +118,5 @@ const g=function*(){
 		}
 	}
 	rl.once("line",()=>process.exit());
-}();
+}(process.argv.slice(2));
 g.next();

@@ -1,0 +1,1 @@
+@pypy3 SeeLeeToeLee.py %1

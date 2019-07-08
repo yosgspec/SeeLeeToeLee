@@ -41,9 +41,9 @@ toPlainChar1( 0)="ァ"  ,"ィ",  "ゥヴ","ェ",  "ォ",  "ヵガ","ギ",  "グ",  "ヶゲ",
 toPlainChar2( 0)="ア"  ,"イ",  "ウ"  ,"エ",  "オ",  "カ",  "キ",  "ク",  "ケ",  "コ"
 toPlainChar1(10)="ザ"  ,"ジ",  "ズ"  ,"ゼ",  "ゾ",  "ダ",  "ヂ",  "ッヅ","デ",  "ド"
 toPlainChar2(10)="サ"  ,"シ",  "ス"  ,"セ",  "ソ",  "タ",  "チ",  "ツ",  "テ",  "ト"
-toPlainChar1(20)="バパ","ビピ","ブプ","ベペ","ボポ","ャ",  "ュ",  "ョ",  "ヮ",  "2２"
+toPlainChar1(20)="バパ","ビピ","ブプ","ベペ","ボポ","ャ",  "ュ",  "ョ",  "ヮ",  "2"
 toPlainChar2(20)="ハ"  ,"ヒ"  ,"フ"  ,"ヘ"  ,"ホ"  ,"ヤ",  "ユ",  "ヨ",  "ワ",  "ツ"
-toPlainChar1(30)="ZＺ",   "♂",  "♀"
+toPlainChar1(30)="Z",     "♂",  "♀"
 toPlainChar2(30)="ゼット","オス","メス"
 sdim toPlainBytes,,length(toPlainChar1)
 foreach toPlainChar1: toPlainBytes.cnt=getBytes(toPlainChar1.cnt): loop
@@ -75,9 +75,9 @@ foreach toPlainChar1: toPlainBytes.cnt=getBytes(toPlainChar1.cnt): loop
 #global
 
 #module
-#deffunc main
+#deffunc main str args
+	if ""!args: dataPath=args: else: dataPath="./data.csv"
 	sdim data
-	dataPath="./data.csv"
 	exist dataPath
 	if -1!strsize {
 		notesel data
@@ -92,6 +92,7 @@ foreach toPlainChar1: toPlainBytes.cnt=getBytes(toPlainChar1.cnt): loop
 		mes "データが読み込めませんでした"
 		mes "ファイルパス:\""+dataPath+"\""
 		input data,,2
+		return
 	}
 	sdim dateTitle
 	noteget dateTitle,0
@@ -121,7 +122,7 @@ foreach toPlainChar1: toPlainBytes.cnt=getBytes(toPlainChar1.cnt): loop
 
 	cpuMemory=data
 
-	isUser=1
+	isUser=rnd(2)
 	users="あいて","あなた"
 	mes "はじめは"+users.isUser+"からです"
 	mes "最初の文字は「"+lastWord+"」です"
@@ -132,7 +133,8 @@ foreach toPlainChar1: toPlainBytes.cnt=getBytes(toPlainChar1.cnt): loop
 		repeat notemax
 			sdim v: noteget v,cnt
 			if "ン"=getChar(v,getBytes(v),strlen(v)-1): continue
-			if 0=dataUsed(cnt) & check(lastWord,v){
+			if dataUsed(cnt): continue
+			if check(lastWord,v){
 				gameBreak=0
 				break
 			}
@@ -202,6 +204,8 @@ foreach toPlainChar1: toPlainBytes.cnt=getBytes(toPlainChar1.cnt): loop
 			continue
 		}
 	loop
+	dim s: input s,,2
 	return
 #global
-main
+_dir_cmdline=dir_cmdline
+main strtrim(_dir_cmdline,0,34)
